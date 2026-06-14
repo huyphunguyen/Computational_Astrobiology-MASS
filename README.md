@@ -184,7 +184,7 @@ Single notebook covering all tasks end-to-end. Run top-to-bottom with **Kernel �
 | Tasks 1–2 | A-B | Light curve plots, BLS detection on 12 systems |
 | Task 3 | B-C | Physics scoring: S, T_eq, HZ flags, transparent ranking |
 | Task 4–5 | C | ML training (CNN, MLP, RF), evaluation tables |
-| Task 6 | C | CNN calibration, confusion matrix, Brier score |
+| Task 6 | C | CNN calibration, confusion matrix |
 | Task 7 | C-D | MLP regression diagnostics, RF feature importance |
 | Task 8 | D | Rank-agreement comparison: bump chart + Spearman/Kendall |
 
