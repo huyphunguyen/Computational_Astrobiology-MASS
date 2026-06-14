@@ -1,5 +1,8 @@
 # PLATO Habitable-Zone Transit Detection Pipeline
 
+[![MASS-UBMATF](https://img.shields.io/badge/MASS--UBMATF-Computational_Astrobiology_2026-blue)
+
+
 End-to-end pipeline for simulating, detecting, and ranking habitable-zone exoplanet candidates using PLATO-like photometry. Built for MASS Semester 2 Computational Astrobiology (Project 10).
 
 ## What this project does 
