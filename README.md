@@ -1,8 +1,5 @@
 # PLATO Habitable-Zone Transit Detection Pipeline
 
-![MASS-UBMATF](https://img.shields.io/badge/MASS--UBMATF-Computational_Astrobiology_2026-blue)
-
-
 End-to-end pipeline for simulating, detecting, and ranking habitable-zone exoplanet candidates using PLATO-like photometry. Built for MASS Semester 2 Computational Astrobiology (Project 10).
 
 ## What this project does 
@@ -27,6 +24,166 @@ PSLS simulation → BLS transit search → Transparent ranking → ML models →
 4. **Classify** transits with a 1D CNN and Random Forest
 5. **Rank habitability** with an MLP and Random Forest regressor
 6. **Compare** transparent vs ML-hybrid ranking schemes
+
+---
+
+## Pipeline Workflow
+
+### Training Phase (`generate_training_data.py` → `retrain_cnn_mlp.py`)
+
+```
+PSLS (450 curves, 5 tiers)
+  │
+  ├─► Detrend (running median, 1 d window)
+  │
+  └─► BLS recovery (period / depth / SNR / duration)
+        │
+        ├─► Phase-fold at recovered period → 201-bin array
+        │     └─► CNN classifier  (input: 201-bin flux,    loss: BCE)
+        │         MLP ranker      (input: 8 physics cols,  loss: MSE)
+        │
+        └─► Tabular features + physics labels
+              └─► RF classifier  (input: 7 BLS+stellar cols)
+                  RF ranker      (input: 5 physics cols)
+```
+
+### Inference Phase (`transit_search.ipynb`, 12 sim systems)
+
+```
+sim_systems/ (12 YAMLs)
+  │
+  └─► PSLS → raw .dat light curve
+        │
+        └─► Detrend → BLS search
+              │
+              ├─► Physics score
+              │     H_HZ · 1.00 + H_Rp · 0.20 + H_host · 0.15
+              │     + H_det · 0.15 + H_stab · 0.10
+              │           │
+              │           ▼
+              │     Transparent ranking
+              │
+              ├─► CNN transit_prob → replaces H_det slot
+              │         │
+              │         ▼
+              │     CNN-hybrid ranking
+              │
+              └─► RF transit_prob × 0.4 + RF rank_score × 0.6
+                        │
+                        ▼
+                  RF-combined ranking
+```
+
+### Scheme Comparison
+
+```
+12 systems → [Transparent | CNN-hybrid | RF-combined]
+                    │
+                    └─► Bump chart + Spearman/Kendall rank correlation
+```
+
+---
+
+## File Guide
+
+### `habitable_zone_pipeline.py` — Physics core
+Central module. Everything that touches stars, orbits, or scores lives here.
+
+| Function | Does |
+|---|---|
+| `stellar_luminosity_solar` | L★ from R★, T★ via Stefan-Boltzmann |
+| `incident_flux_earth_units` | S = L★ / a² (S=1 → Earth-like) |
+| `equilibrium_temperature_from_au` | T_eq from orbital distance + albedo |
+| `habitable_zone_flags` | Returns `in_hz`, `near_hz`, `too_hot`, `too_cold` booleans |
+| `habitability_rank_score` | Full Gaussian score → dict of H_HZ, H_Rp, H_host, H_det, H_stab, rank_score |
+| `run_bls_recovery_with_refinement` | BLS period search + harmonic grid refinement → period/depth/SNR/duration |
+| `phase_fold_lightcurve` | Fold + bin flux to N bins centred on transit |
+| `load_cnn_models` | Load CNN + MLP + scaler from `models/` |
+
+---
+
+### `transit_helpers.py` — Light curve and diagnostics
+Bridges raw PSLS output to the analysis pipeline.
+
+| Function | Does |
+|---|---|
+| `load_systems_from_yaml` | Parse all `sim_systems/*.yaml` into a dict keyed by system ID |
+| `load_psls_dat` | Read PSLS `.dat` file → `(time, flux)` arrays, applies stride downsampling |
+| `detrend_flux` | Running-median detrend (removes granulation/activity trends) |
+| `verdict` | Returns  label: `"HZ DETECTED"`, `"NON-HZ"`, `"MISSED"`, etc. |
+| `plot_bls_diagnostic` | BLS power spectrum + phase-folded LC diagnostic plot |
+
+---
+
+### `ml_pipeline.py` — ML models
+All model definitions, training, prediction, and persistence.
+
+| Class / Function | Does |
+|---|---|
+| `TransitCNN` | 1D CNN: 3 conv layers + 2 FC layers, input 201-bin phase-folded flux |
+| `HabitabilityMLP` | MLP: 3 hidden layers (128→64→32), input 8 physics features |
+| `train_cnn_classifier` | Train CNN with BCE loss, Adam optimizer, early stopping |
+| `train_mlp_ranker_nn` | Train MLP with MSE loss, StandardScaler normalization |
+| `train_rf_classifier` | Train RF on 7 tabular BLS+stellar features |
+| `train_rf_ranker` | Train RF on 5 physics features |
+| `predict_transit_prob` / `predict_transit_prob_cnn` | Inference: transit probability ∈ [0,1] |
+| `predict_rank_score` / `predict_rank_score_mlp` | Inference: habitability rank score |
+| `save_models` / `load_models` | Persist/restore RF models (`.pkl`) + CNN/MLP (`.pt`) + scaler |
+
+---
+
+### `generate_training_data.py` — PSLS training data generator
+Generates the 450-curve stratified dataset used to train all four models.
+
+| Function | Does |
+|---|---|
+| `generate_training_dataset_psls` | Main entry point: runs PSLS per sample, extracts tabular + phase-folded features, writes CSV + npy. Resumable — skips already-computed `star_id`s |
+| `_generate_one_sample_psls` | Single sample: write YAML → run PSLS → detrend → BLS → compute all features → phase-fold |
+| `_sample_tier_params` | Sample (period, Rp, noise_mult) for a given difficulty tier |
+
+Run directly:
+```bash
+python(or python3) generate_training_data.py --n-cold 100
+```
+
+---
+
+### `retrain_cnn_mlp.py` — Retraining script
+Standalone script to retrain CNN + MLP from existing `training_data/`. Does not regenerate data.
+
+```bash
+python(or python3) retrain_cnn_mlp.py
+```
+Saves updated weights to `models/cnn_classifier.pt`, `models/mlp_ranker.pt`, `models/mlp_scaler.pkl`.
+
+---
+
+### `psls_runner.py` — PSLS interface
+Thin wrapper around the PSLS binary for PLATO light curve simulation.
+
+| Function | Does |
+|---|---|
+| `match_grid_model` | Snap (Teff, logg) to nearest model in `grid_plato.hdf5` → returns exact (Teff, logg, Mstar, Rstar) |
+| `write_psls_yaml` | Write PSLS config YAML for one stellar system |
+| `run_psls` | Execute PSLS binary, return path to output `.dat` file (idempotent — skips if exists) |
+| `read_psls_star_params` | Parse stellar parameters from `.dat` header |
+
+---
+
+### `transit_search.ipynb` — Main analysis notebook
+Single notebook covering all tasks end-to-end. Run top-to-bottom with **Kernel → Restart & Run All**.
+
+| Section | Tasks | Content |
+|---|---|---|
+| Setup | — | Imports, load systems, run PSLS simulations |
+| Tasks 1–2 | A-B | Light curve plots, BLS detection on 12 systems |
+| Task 3 | B-C | Physics scoring: S, T_eq, HZ flags, transparent ranking |
+| Task 4–5 | C | ML training (CNN, MLP, RF), evaluation tables |
+| Task 6 | C | CNN calibration, confusion matrix, Brier score |
+| Task 7 | C-D | MLP regression diagnostics, RF feature importance |
+| Task 8 | D | Rank-agreement comparison: bump chart + Spearman/Kendall |
+
+Pre-trained models in `models/` load automatically — retraining not required.
 
 ---
 
@@ -156,7 +313,6 @@ Score = 1.00 · H_HZ + 0.20 · H_Rp + 0.15 · H_host + 0.15 · H_det + 0.10 · H
 
 The `cold` tier inverts S = L/a² to pick long-period, cold-regime orbits (often undetectable in 270 d) so the ranker sees genuine low-insolation physics instead of extrapolating from the period-based tiers.
 
-Base noise: 80 ppm. Cadence: 25 s × 72 downsample = 30 min effective.
 
 ---
 
@@ -167,8 +323,8 @@ Three schemes compared in `transit_search.ipynb`:
 | Scheme | H_det source |
 |---|---|
 | Transparent | BLS depth_snr → Gaussian formula |
-| CNN hybrid (D2) | CNN transit_prob replaces H_det slot (w=0.15) |
-| RF combined (ML-3) | 0.6 × RF_rank + 0.4 × RF_transit_prob |
+| CNN hybrid | CNN transit_prob replaces H_det slot (w=0.15) |
+| RF combined | RF transit_prob replaces H_det slot (w = 0.15) |
 
 ---
 
