@@ -1,0 +1,9 @@
+Generating stratified training dataset...
+Saved 350 rows to training_data/training_labels.csv
+Transit: 250 | No-transit: 100
+            count       mean        50%
+tier                                   
+easy         80.0  60.363834  55.410165
+hard         70.0   6.171439   5.733995
+medium      100.0  20.661434  18.825589
+no_transit  100.0   5.701148   5.693046

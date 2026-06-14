@@ -1,0 +1,13 @@
+config,science_case,star_type,P_injected_d,P_recovered_d,period_error_pct,n_transits_expected,depth_ppm,bls_peak_snr,depth_snr,detected,S_earth,Teq_K,in_habitable_zone_flux,in_habitable_zone_teq_band,rank_score,verdict
+A1_K_hot,Hot inner control,K-dwarf,12.0,12.0,0.03,67,203.3,5.5712,7.27,True,30.6083,598.8,False,False,0.46500969686884885,Marginal
+A2_K_hz,HZ target,K-dwarf,45.0,48.53,7.84,18,164.6,5.454,3.05,False,5.1225,383.0,False,False,0.4506216001652705,Non-promising
+B1_G_hot,Hot inner control,G-dwarf,15.0,22.04,46.93,54,127.5,5.2034,2.97,False,68.3917,732.1,False,False,0.5445999185958826,Non-promising
+B2_G_hz,HZ target (Earth analog),G-dwarf,365.0,206.03,43.55,2,85.3,5.0987,0.38,False,0.9848,253.6,True,True,1.5293144845615698,Non-promising
+B3_G_cold,Cold outer control,G-dwarf,730.0,369.38,49.4,1,151.7,5.1654,0.48,False,0.3847,200.5,False,True,0.6587232927648866,Non-promising
+C1_F_hot,Hot inner control,F-dwarf,20.0,25.01,25.05,40,62.3,5.9684,0.53,False,82.9938,768.4,False,False,0.5180936671169385,Non-promising
+C2_F_hz,HZ target,F-dwarf,500.0,256.02,48.8,1,50.5,6.7723,0.07,False,1.1408,263.1,True,True,1.40335661909976,Non-promising
+C3_F_adversarial,Adversarial (noisy),F-dwarf,500.0,385.37,22.93,1,39.9,5.9339,0.05,False,1.1408,263.1,True,True,1.3826212585642141,Non-promising
+D1_K_hz_promising,HZ promising (super-Earth),K-dwarf,119.0,119.04,0.03,6,983.8,13.5516,16.24,True,1.3726,275.6,False,False,0.7392003400763026,Promising
+D2_K_hz_promising2,HZ promising (super-Earth),Late K-dwarf,77.0,76.97,0.03,10,1416.6,14.4063,25.28,True,1.3689,275.4,True,False,0.710070013120041,Promising
+D3_G_hot_control,Hot inner control,G-dwarf,8.0,8.0,0.03,101,658.5,33.7615,31.12,True,153.8814,896.7,False,False,0.35088517925742785,Marginal
+D4_G_cold_control,Cold outer control,G-dwarf,500.0,263.89,47.22,1,237.1,4.7871,0.96,False,0.3216,191.7,False,True,0.5469203185859282,Non-promising

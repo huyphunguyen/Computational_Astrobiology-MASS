@@ -1,0 +1,97 @@
+# C3 — F-dwarf host, adversarial / unfavorable case
+# Same orbit as C2 (1.45 AU, 500d) but smaller planet (0.08 Rj ~ 0.9 Re),
+# stronger activity (Sigma=300, heavy spots, frequent large flares), EOL high drift.
+# Designed to be at or below the detection threshold — non-promising target.
+
+Observation:
+  QuarterDuration: [90., 90., 90.]
+  MasterSeed: 1704040908
+  Gaps:
+    Enable: 0
+
+Instrument:
+  Sampling: 25.
+  IntegrationTime: 21.
+  GroupID: [1,2,3,4]
+  NCamera: 6
+  TimeShift: 6.25
+  RandomNoise:
+    Enable: 1
+    Type: PLATO_SCALING
+    NSR: 73.
+  Systematics:
+    Enable: 1
+    Table: ../psls-1.9/systematics/PLATO_systematics_EOL_V2.npy
+    Version: 2
+    DriftLevel: high
+    Seed: -1
+
+Star:
+  Mag: 11.5
+  ID: 10000008
+  ModelType: single
+  ModelDir: ../psls-1.9/models/
+  ModelName: 0012069449
+  ES: ms
+  Teff: 6300.
+  Logg: 4.20
+  SurfaceRotationPeriod: 5.0
+  CoreRotationFreq: 0.
+  Inclination: 45.
+
+Oscillations:
+  Enable: 1
+  numax: 179.3
+  delta_nu: 13.68
+  DPI: 80.58
+  q: 0.15
+  SurfaceEffects: 1
+  Seed: -1
+
+Activity:
+  Enable: 1
+  Sigma: 300.
+  Tau: 10.
+  Seed: -1
+  Spot:
+    Enable: 1
+    dOmega: 0.
+    MuStar: 0.59
+    MuSpot: 0.78
+    Radius: [4.0, 3.5, 4.0, 3.0]
+    Latitude: [0.0, 15.0, 30.0, 50.0]
+    Longitude: [0.0, 90.0, 180.0, 270.0]
+    Lifetime: [10, 15, 20, 25]
+    TimeMax: [-1, -1, -1, -1]
+    Contrast: [0.55, 0.6, 0.5, 0.65]
+    Modulation: 0.
+    Seed: -1
+  Flare:
+    Enable: 1
+    MeanPeriod: 5
+    Amplitude: 3000.
+    UpDown: 0.1
+    MeanDuration: -1
+    DurationDispersion: -1
+    Seed: -1
+
+Granulation:
+  Enable: 1
+  Type: 1
+  Seed: -1
+
+Transit:
+  Enable: 1
+  PlanetRadius: 0.08
+  OrbitalPeriod: 500.
+  PlanetSemiMajorAxis: 1.45
+  OrbitalAngle: 0.
+  LimbDarkeningCoefficients: [0.29, 0.49]
+
+External:
+  Enable: 0
+  FilePath: examples/external_example.txt
+
+Metadata:
+  star_type: "F-dwarf"
+  science_case: "Adversarial (noisy)"
