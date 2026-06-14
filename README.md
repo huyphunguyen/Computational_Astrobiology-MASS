@@ -2,7 +2,7 @@
 
 End-to-end pipeline for simulating, detecting, and ranking habitable-zone exoplanet candidates using PLATO-like photometry. Built for MASS Semester 2 Computational Astrobiology (Project 10).
 
-## What this project does (non-specialist summary)
+## What this project does 
 
 When a planet passes in front of its star, it blocks a tiny fraction of the star's light. By watching for these repeated dips in brightness, we can discover planets orbiting distant stars. This project simulates what the ESA PLATO space telescope would observe, then uses a combination of classical signal-processing and machine learning to:
 
