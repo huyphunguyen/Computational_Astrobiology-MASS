@@ -31,6 +31,8 @@ PSLS simulation → BLS transit search → Transparent ranking → ML models →
 
 ### Training Phase (`generate_training_data.py` → `retrain_cnn_mlp.py`)
 
+450 PSLS light curves are generated across 5 difficulty tiers (easy / medium / hard / cold / no-transit). Each curve is detrended with a running median to remove stellar granulation, then fed into BLS to recover the transit period, depth, and SNR. Two parallel feature paths emerge: the phase-folded flux array (201 bins) trains the CNN and MLP via gradient descent (BCE and MSE loss respectively), while the tabular BLS + physics features train the Random Forest classifier and ranker via tree splits. All four models are saved to `models/`.
+
 ```
 PSLS (450 curves, 5 tiers)
   │
@@ -48,6 +50,7 @@ PSLS (450 curves, 5 tiers)
 ```
 
 ### Inference Phase (`transit_search.ipynb`, 12 sim systems)
+Each of the 12 YAML-defined stellar systems is simulated through PSLS to produce a realistic PLATO-like light curve. After detrending and BLS search, three independent ranking schemes are applied to every candidate. The transparent scheme uses only a Gaussian physics formula — no ML. The CNN-hybrid replaces the detection quality term (H_det) with the CNN's transit probability. The RF-combined also does the same with the RF classifier's transit probability.
 
 ```
 sim_systems/ (12 YAMLs)
@@ -63,18 +66,19 @@ sim_systems/ (12 YAMLs)
               │           ▼
               │     Transparent ranking
               │
-              ├─► CNN transit_prob → replaces H_det slot
+              ├─► CNN transit_prob --> replaces H_det slot
               │         │
               │         ▼
               │     CNN-hybrid ranking
               │
-              └─► RF transit_prob × 0.4 + RF rank_score × 0.6
+              └─► RF transit_prob --> replaces H_det slot
                         │
                         ▼
                   RF-combined ranking
 ```
 
 ### Scheme Comparison
+The three ranked lists are compared directly using a bump chart (rank position per system across schemes) and Spearman / Kendall correlation coefficients. This reveals where ML and physics agree, where they diverge, and whether swapping in a data-driven detector changes which planets are prioritised for follow-up.
 
 ```
 12 systems → [Transparent | CNN-hybrid | RF-combined]
@@ -324,7 +328,7 @@ Three schemes compared in `transit_search.ipynb`:
 |---|---|
 | Transparent | BLS depth_snr → Gaussian formula |
 | CNN hybrid | CNN transit_prob replaces H_det slot (w=0.15) |
-| RF combined | RF transit_prob replaces H_det slot (w = 0.15) |
+| RF combined | RF transit_prob replaces H_det slot (w =0.15) |
 
 ---
 
@@ -358,7 +362,7 @@ Additionally, the stellar model grid 'PlatoLightCurves/psls-1.9/grid_plato.hdf5'
 
 ## Notebook checks
 
-Verify the notebook executes cleanly and meets code quality targets:
+For checking notebooks, run this
 
 ```bash
 pytest --nbmake --nbmake-timeout=60 transit_search.ipynb   # notebook runs top-to-bottom without errors
