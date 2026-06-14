@@ -359,7 +359,7 @@ The notebook runs top-to-bottom with no manual steps. Pre-trained models are inc
 python generate_training_data.py --n-cold 100   # regenerate 450-row training dataset
 python retrain_cnn_mlp.py          # retrain CNN + MLP from scratch
 ```
-Additionally, the stellar model grid 'PlatoLightCurves/psls-1.9/grid_plato.hdf5' designed to capture oscillations of Sun-like stars was provided by directly contacting [mailto:reza.samadi@obspm.fr].
+Additionally, PSLS needs the stellar model grid file 'grid_plato.hdf5' to simulate the oscillation and other main-sequence stars, which was provided by directly contacting [mailto:reza.samadi@obspm.fr].
 
 ## Notebook checks
 
