@@ -39,8 +39,8 @@ PSLS (450 curves, 5 tiers)
   └─► BLS recovery (period / depth / SNR / duration)
         │
         ├─► Phase-fold at recovered period → 201-bin array
-        │     └─► CNN classifier  (input: 201-bin flux,    loss: BCE)
-        │         MLP ranker      (input: 8 physics cols,  loss: MSE)
+        │     └─► CNN classifier  (input: 201-bin flux)
+        │         MLP ranker      (input: 8 physics cols)
         │
         └─► Tabular features + physics labels
               └─► RF classifier  (input: 7 BLS+stellar cols)
